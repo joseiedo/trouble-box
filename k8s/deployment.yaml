@@ -6,7 +6,8 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: trouble-box  template:
+      app: trouble-box
+  template:
     metadata:
       labels:
         app: trouble-box
