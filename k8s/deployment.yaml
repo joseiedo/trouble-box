@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trouble-box
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trouble-box
+  template:
+    metadata:
+      labels:
+        app: trouble-box
+    spec:
+      containers:
+      - name: trouble-box
+        image: rmnobarra/trouble-box:latest
+        ports:
+        - containerPort: 8000
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
