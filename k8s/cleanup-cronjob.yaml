@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: orders-cleanup
+spec:
+  schedule: "*/2 * * * *"  # A cada 2 minutos
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cleanup
+            image: busybox:1.35
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - |
+              rm -rf /app/orders/*
+              echo "Arquivos processados com sucesso"
+            volumeMounts:
+            - name: orders-volume
+              mountPath: /app/orders
+          restartPolicy: OnFailure
+          volumes:
+          - name: orders-volume
+            persistentVolumeClaim:
+              claimName: orders-pvc
