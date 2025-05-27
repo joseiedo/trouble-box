@@ -7,6 +7,7 @@ import hashlib, os, time, threading, random
 from fastapi.responses import PlainTextResponse
 from pathlib import Path
 import psutil
+import shutil
 
 # Inicialização da app
 app = FastAPI(
@@ -14,9 +15,9 @@ app = FastAPI(
     description="Simulador de carga para testes com Kubernetes e Observabilidade",
     version="1.0.0",
     contact={
-        "name": "DevOps Demo",
-        "url": "https://example.com",
-        "email": "dev@example.com"
+        "name": "Troublebox aPP",
+        "url": "https://rmnobarra.github.io",
+        "email": "rmnobarra@gmail.com"
     },
 )
 
@@ -25,7 +26,9 @@ REQUEST_COUNTER = Counter("troublebox_orders_total", "Total de pedidos processad
 CPU_LOAD = Gauge("troublebox_cpu_load", "Carga de CPU simulada")
 MEMORY_LOAD = Gauge("troublebox_memory_load", "Uso de memória simulado")
 DISK_USAGE = Gauge("troublebox_disk_usage", "Uso de disco simulado (arquivos criados)")
+DISK_USAGE_PERCENT = Gauge("troublebox_disk_usage_percent", "Uso percentual real do volume /orders")
 RPS = Gauge("troublebox_rps", "Pedidos simulados por segundo (todos)")
+
 
 # Controle interno de RPS
 _request_count_last_second = 0
@@ -289,6 +292,22 @@ def generate_traffic():
         print(f"[auto] Gerou {quantidade} requisições simuladas")
         time.sleep(1)
 
+
+import shutil
+
+def update_disk_usage_loop():
+    while True:
+        try:
+            total, used, free = shutil.disk_usage("./orders")
+            usage_percent = (used / total) * 100
+            DISK_USAGE_PERCENT.set(usage_percent)
+        except Exception as e:
+            print(f"Erro ao calcular uso de disco: {e}")
+        time.sleep(5)
+
+
 # Início das threads de fundo
 threading.Thread(target=generate_traffic, daemon=True).start()
 threading.Thread(target=update_metrics_loop, daemon=True).start()
+threading.Thread(target=update_disk_usage_loop, daemon=True).start()
+
